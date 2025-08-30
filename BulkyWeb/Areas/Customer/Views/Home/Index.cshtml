@@ -1,0 +1,107 @@
+﻿@model IEnumerable<Product>
+
+<!-- Internal Styles -->
+<style>
+    .home-section {
+        background-image: url('/images/library-hero.jpg');
+        background-size: cover;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+    }
+
+    .text-content h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+    }
+
+    .text-content p {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature {
+        font-size: 2rem;
+        padding: 1rem;
+        display: inline-block;
+    }
+
+    .card-img-top {
+        height: 250px;
+        object-fit: cover;
+    }
+</style>
+
+<!-- Homepage Section with Background Image -->
+<section class="home-section">
+    <div class="text-content">
+        <h1>Step Into the World of Stories</h1>
+        <p>Your next favorite book is just one click away</p>
+        <a href="@Url.Action("AllBooks", "Home")" class="btn btn-primary btn-lg">Explore Books</a>
+    </div>
+</section>
+
+<!-- New Books Section -->
+<section class="py-5 border-bottom" id="features">
+    <div class="container px-5 my-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bolder">New Books</h2>
+            <p class="lead mb-0">Fresh arrivals just for you</p>
+        </div>
+        <div class="row gx-5 justify-content-center">
+            @foreach (var product in Model.Take(3))
+            {
+                <div class="col-lg-4 mb-5">
+                    <div class="card h-100 shadow border-0">
+                        <img src="@product.ProductImages.FirstOrDefault()?.ImageUrl" class="card-img-top" alt="@product.Title" />
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Title</h5>
+                            <p class="card-text text-muted">by @product.Author</p>
+                            <p class="card-text fw-bold">@product.Price.ToString("C")</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a asp-area="Customer" asp-controller="Home" asp-action="AllBooks" class="btn btn-outline-primary w-100">
+                                Explore More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 border-bottom" id="features">
+    <div class="container px-5 my-5">
+        <div class="row gx-5">
+            <div class="col-lg-4 mb-5 mb-lg-0">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-collection"></i></div>
+                <h2 class="h4 fw-bolder">Katalog i Pasur</h2>
+                <p>Ne ofrojmë një gamë të gjërë librash nga kategori të ndryshme që përmbushin çdo shije dhe interes. Zbuloni botë të reja përmes leximit.</p>
+                <a class="text-decoration-none" href="/Customer/Home/AllBooks">
+                    Shfleto Kategoritë <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="col-lg-4 mb-5 mb-lg-0">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-building"></i></div>
+                <h2 class="h4 fw-bolder">Për Kompani dhe Individë</h2>
+                <p>Qoftë për një zyrë, shkollë apo lexues të pasionuar – kemi zgjidhje për të gjithë. Porosit tani në mënyrë të thjeshtë dhe efikase.</p>
+                <a class="text-decoration-none" href="/Customer/Home/AllBooks">
+                    Bli për Kompaninë <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="col-lg-4">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-toggles2"></i></div>
+                <h2 class="h4 fw-bolder">Shërbiim Cilësor</h2>
+                <p>Eksperienca jonë dhe përkushtimi për cilësi garantojnë një shërbiim të shkëlqyer në çdo porosi. Jemi këtu për ju në çdo hap.</p>
+                <a class="text-decoration-none" href="/Customer/Home/AboutUs">
+                    Mëso më shumë <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

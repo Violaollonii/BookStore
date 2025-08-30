@@ -1,0 +1,227 @@
+﻿@model IEnumerable<Product>
+@using Microsoft.AspNetCore.Identity
+
+@{
+    var isCompany = User.IsInRole("Company");
+    var isEmployee = User.IsInRole("Employee");
+}
+
+@if (isEmployee)
+{
+    <h2 class="mt-4 mb-4">Employee Sales Dashboard</h2>
+
+    <div class="row mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card border-success shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Today</h5>
+                    <p class="display-6 text-success fw-bold">
+                        @Model.Sum(p => ViewBag.SalesToday != null && ((IDictionary<int, double>)ViewBag.SalesToday).ContainsKey(p.Id) ? (double)ViewBag.SalesToday[p.Id] : 0).ToString("C")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">This Week</h5>
+                    <p class="display-6 text-primary fw-bold">
+                        @Model.Sum(p => ViewBag.SalesThisWeek != null && ((IDictionary<int, double>)ViewBag.SalesThisWeek).ContainsKey(p.Id) ? (double)ViewBag.SalesThisWeek[p.Id] : 0).ToString("C")
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">This Month</h5>
+                    <p class="display-6 text-warning fw-bold">
+                        @Model.Sum(p => ViewBag.SalesThisMonth != null && ((IDictionary<int, double>)ViewBag.SalesThisMonth).ContainsKey(p.Id) ? (double)ViewBag.SalesThisMonth[p.Id] : 0).ToString("C")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mt-4 mb-2">Sales by Book</h4>
+    <table class="table table-hover table-bordered shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Book Title</th>
+                <th>Sales Count</th>
+                <th>Today</th>
+                <th>This Week</th>
+                <th>This Month</th>
+                <th>Avg Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                var salesToday = ViewBag.SalesToday != null && ((IDictionary<int, double>)ViewBag.SalesToday).ContainsKey(product.Id)
+                ? (double)ViewBag.SalesToday[product.Id] : 0;
+
+                var salesWeek = ViewBag.SalesThisWeek != null && ((IDictionary<int, double>)ViewBag.SalesThisWeek).ContainsKey(product.Id)
+                ? (double)ViewBag.SalesThisWeek[product.Id] : 0;
+
+                var salesMonth = ViewBag.SalesThisMonth != null && ((IDictionary<int, double>)ViewBag.SalesThisMonth).ContainsKey(product.Id)
+                ? (double)ViewBag.SalesThisMonth[product.Id] : 0;
+
+                var count = ViewBag.OrderCount != null && ((IDictionary<int, int>)ViewBag.OrderCount).ContainsKey(product.Id)
+                ? (int)ViewBag.OrderCount[product.Id] : 0;
+
+                var avg = count > 0 ? (salesMonth / count) : 0;
+
+                <tr>
+                    <td>@product.Title</td>
+                    <td><span class="badge bg-secondary">@count</span></td>
+                    <td>@salesToday.ToString("C")</td>
+                    <td>@salesWeek.ToString("C")</td>
+                    <td>@salesMonth.ToString("C")</td>
+                    <td class="fw-semibold text-success">@avg.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4 class="mt-5 mb-2">Top 3 Most Profitable Books This Month</h4>
+    <table class="table table-striped table-hover shadow-sm">
+        <thead class="table-info">
+            <tr>
+                <th>Book Title</th>
+                <th>Total Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var ranked = Model
+                .Select(p => new
+                {
+                    Title = p.Title,
+                    Total = ViewBag.SalesThisMonth != null && ((IDictionary<int, double>)ViewBag.SalesThisMonth).ContainsKey(p.Id)
+                ? (double)ViewBag.SalesThisMonth[p.Id] : 0
+                })
+                .OrderByDescending(x => x.Total)
+                .Take(3)
+                .ToList();
+            }
+
+            @foreach (var item in ranked)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td><span class="text-warning fw-bold">@item.Total.ToString("C")</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4 class="mt-5">Send a Message to the Administrator</h4>
+    <form id="employeeMessageForm" class="mb-4">
+        <div class="mb-3">
+            <label for="userName" class="form-label">Employee Name</label>
+            <input type="text" class="form-control" id="userName" value="@User.Identity.Name" readonly />
+        </div>
+        <div class="mb-3">
+            <label for="messageText" class="form-label">Message</label>
+            <textarea class="form-control" id="messageText" rows="3" placeholder="Write your message..."></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="sendEmployeeMessage()">Send Message</button>
+        <div id="messageStatus" class="mt-2"></div>
+    </form>
+}
+else
+{
+    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+        @foreach (var product in Model)
+        {
+            <div class="col mb-5">
+                <div class="card h-100 shadow-sm">
+                    @if (product.ProductImages != null && product.ProductImages.Any())
+                    {
+                        <img class="card-img-top" src="@product.ProductImages.FirstOrDefault().ImageUrl" alt="Book Image" />
+                    }
+                    else
+                    {
+                        <img class="card-img-top" src="https://placehold.co/450x300" alt="No Image" />
+                    }
+
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <h5 class="fw-bolder">@product.Title</h5>
+                            <div class="text-muted small">by @product.Author</div>
+
+                            <div class="text-muted mt-2">
+                                <span class="text-decoration-line-through">@product.ListPrice.ToString("C")</span><br />
+                                <span class="fw-semibold text-dark">From: @product.Price100.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        <div class="text-center">
+                            @if (isCompany)
+                            {
+                                <form asp-area="Customer" asp-controller="Home" asp-action="Details" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="ProductId" value="@product.Id" />
+                                    <input type="number" name="Count" value="1" min="1" class="form-control text-end mb-2" />
+                                    <button type="submit" class="btn btn-outline-dark mt-auto w-100">
+                                        <i class="bi bi-cart-fill"></i> Add to Cart
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-productId="@product.Id" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-eye-fill"></i> View Details
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+@section Scripts {
+    <script>
+        async function sendEmployeeMessage() {
+            const userName = document.getElementById('userName').value;
+            const messageText = document.getElementById('messageText').value;
+
+            const employeeId = '@User.FindFirstValue(ClaimTypes.NameIdentifier)'; // requires using System.Security.Claims in _ViewImports.cshtml
+
+            if (!messageText.trim()) {
+                document.getElementById('messageStatus').innerHTML = "<span class='text-danger'>Please write a message.</span>";
+                return;
+            }
+
+            const message = {
+                employeeId: employeeId,
+                userName: userName,
+                messageText: messageText
+            };
+
+            try {
+                const response = await fetch('/api/EmployeeMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(message)
+                });
+
+                if (response.ok) {
+                    document.getElementById('messageText').value = '';
+                    document.getElementById('messageStatus').innerHTML = "<span class='text-success'>Message sent successfully!</span>";
+                } else {
+                    document.getElementById('messageStatus').innerHTML = "<span class='text-danger'>Failed to send message.</span>";
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('messageStatus').innerHTML = "<span class='text-danger'>Error sending message.</span>";
+            }
+        }
+    </script>
+}
